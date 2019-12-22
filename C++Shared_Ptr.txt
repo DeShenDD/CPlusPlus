@@ -1,0 +1,46 @@
+shared_ptr使用引用计数，可能存在的危害
+
+1、可能会引起循环调用造成
+shared_ptr<String> sp = make_shared()
+
+class A
+{
+public:
+    shared_ptr<A> pre;
+    shared_ptr<A> next;
+    ~A()
+    {
+        cout << "Destructed." << endl;
+    }
+};
+
+int main()
+{
+
+    {
+        shared_ptr<A> sp_a1(new A),sp_a2(new A);
+        sp_a1->next = sp_a2;
+        sp_a2->pre = sp_a1;
+    }
+	//此时sp_a1和sp_a2并没有释放对应的资源，因为各自的引用计数仍为1，被互相占用；
+
+    return 0;
+}
+
+
+2、可能引起多次释放同一个资源
+
+    将shared_ptr作为参数传入函数，在函数执行结束后会析构源对象，如果多次传入同一个shared_ptr会造成多次释放资源的dump；
+    对于局部作用域道理相同；
+
+3、使用make_shared只创建一次类对象，可以提高效率
+recomm: shared_ptr<int> sp = make_shared<int>(xxx);
+no:     shared_ptr<int> sp(new int(xxx));
+	
+	
+4、使用enable_shared_from_this返回类，否则会造成引用计数错误，进而造成被提前析构；
+
+用shared_ptr，不用new
+使用weak_ptr来打破循环引用
+用make_shared来生成shared_ptr
+用enable_shared_from_this来使一个类能获取自身的shared_ptr
