@@ -26,4 +26,4 @@ $(Client):$(ClientSRC)
 	$(CCMAKE) $(ClientSRC) $(LIBS)  -L./ -lcmd -o $@
 
 clean:
-	rm $(Client) $(TARGET)
+	rm -r $(Client) $(TARGET)  ./*/*\.o
