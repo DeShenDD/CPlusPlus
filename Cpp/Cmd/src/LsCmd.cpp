@@ -7,6 +7,8 @@
 #include <fcntl.h> 
 #include <dirent.h>
 #include <errno.h>
+#include <pwd.h>
+#include <grp.h>
 #include "LsCmd.h"
 
 using namespace std;
@@ -161,11 +163,11 @@ int LsCmd::execute()
     cout<<mPath<<endl;
     struct stat st;
     char info[11];
+    char time[16];
 
     while((ptr=readdir(dir))!=NULL)
     {
         if(!strcmp(ptr->d_name, ".") || !strcmp(ptr->d_name, "..")) continue;
-
         sprintf(mChildPath, "%s/%s", mPath, ptr->d_name);
         stat(mChildPath, &st);
 
@@ -174,7 +176,15 @@ int LsCmd::execute()
         FileUser(st.st_mode, &info[1]);
         FileGroup(st.st_mode, &info[4]);
         FileOthers(st.st_mode, &info[7]);
-        cout<<info<<"  "<<ptr->d_name<<endl;
+        strftime(time, 16, "%b %d %H %M", localtime(&(st.st_ctime)));
+        printf("%10s", info);
+        printf("%2d", st.st_nlink);
+        printf("%8s", getpwuid(st.st_uid)->pw_name);
+        printf("%8s", getgrgid(st.st_gid)->gr_name);
+        printf("%8u", st.st_size);
+        printf("%16s", time);
+        printf("%s\n", ptr->d_name);
+        //cout<<info<<" "<<st.st_nlink<<"  "<<getpwuid(st.st_uid)->pw_name<<" "<<getgrgid(st.st_gid)->gr_name<<" "<<st.st_size<<" "<<time<<" "<<ptr->d_name<<endl;
     }
     return 0;
 }
